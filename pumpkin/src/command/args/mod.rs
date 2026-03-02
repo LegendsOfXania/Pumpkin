@@ -25,6 +25,7 @@ use crate::world::bossbar::{BossbarColor, BossbarDivisions};
 use crate::{entity::player::Player, server::Server};
 
 pub use entity_anchor::EntityAnchor;
+use pumpkin_data::attributes::Attributes;
 
 pub mod block;
 pub mod bool;
@@ -93,6 +94,7 @@ pub trait DefaultNameArgConsumer: ArgumentConsumer {
 
 #[derive(Clone)]
 pub enum Arg<'a> {
+    Attribute(Attributes),
     Entities(Vec<Arc<dyn EntityBase>>),
     Entity(Arc<dyn EntityBase>),
     Players(Vec<Arc<Player>>),

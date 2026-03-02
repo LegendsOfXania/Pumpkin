@@ -22,18 +22,26 @@ pub fn build() -> TokenStream {
 
     let mut constant_defs = Vec::new();
 
+    let mut from_name = TokenStream::new();
+
     for (raw_name, raw_value) in sorted_attributes {
         let constant_ident = format_ident!("{}", raw_name.to_shouty_snake_case());
+        let resource_name = raw_name.to_lowercase();
 
         let id_lit = LitInt::new(&raw_value.id.to_string(), Span::call_site());
         let default_value_lit = raw_value.default_value;
 
         constant_defs.push(quote!(
-            pub const #constant_ident: Self = Self {
-                id: #id_lit,
-                default_value: #default_value_lit,
-            };
+           pub const #constant_ident: Self = Self {
+             id: #id_lit,
+             name: #resource_name,
+             default_value: #default_value_lit,
+         };
         ));
+
+        from_name.extend(quote! {
+            #resource_name => Some(Self::#constant_ident),
+        });
     }
 
     quote! {
@@ -42,6 +50,7 @@ pub fn build() -> TokenStream {
         #[derive(Clone, Debug)]
         pub struct Attributes {
             pub id: u8,
+            pub name: &'static str,
             pub default_value: f64,
         }
         impl PartialEq for Attributes {
@@ -57,6 +66,13 @@ pub fn build() -> TokenStream {
         }
         impl Attributes {
             #(#constant_defs)*
+
+            pub fn from_name(name: &str) -> Option<Self> {
+                match name {
+                    #from_name
+                    _ => None,
+                }
+            }
         }
     }
 }
